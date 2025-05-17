@@ -520,9 +520,8 @@ if process_btn:
                 )
 
             # Chuyển datetime thành chỉ ngày (nếu cần)
-            Don_quyet_toan_unique["Ngày"] = Don_quyet_toan_unique[
-                "Order settled time"
-            ].dt.date
+            # Don_quyet_toan_unique = Don_quyet_toan_unique.copy()
+            # Don_quyet_toan_unique["Ngày"] = Don_quyet_toan_unique["Thời gian"].dt.date
 
             # Tổng doanh thu theo ngày
             doanhthu_theo_ngay = (
