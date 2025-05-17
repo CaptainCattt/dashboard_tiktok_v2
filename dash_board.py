@@ -677,23 +677,23 @@ if process_btn:
                 st.plotly_chart(fig_hoan_tra, use_container_width=True)
 
             ### DOWNLOAD
-            import io
-            import openpyxl
+        import io
+        import openpyxl
 
-            # Cho phép tải xuống
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                df_main.to_excel(writer, index=False, sheet_name="QuyetToan")
-            output.seek(0)
+        # Cho phép tải xuống
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_main.to_excel(writer, index=False, sheet_name="QuyetToan")
+        output.seek(0)
 
-            st.download_button(
-                label="📥 Tải xuống danh sách quyết toán",
-                data=output,
-                file_name="df_main.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+        st.download_button(
+            label="📥 Tải xuống danh sách quyết toán",
+            data=output,
+            file_name="df_main.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
-            st.success("Đã xử lý xong dữ liệu!")
+        st.success("Đã xử lý xong dữ liệu!")
 
 # ds_loai_don = [
 #     "ĐƠN HÀNG INCOME",
