@@ -438,8 +438,6 @@ if process_btn:
                 Don_boom,
             ) = read_file_tiktok(df_all, df_income, ngay_bat_dau, ngay_ket_thuc)
 
-            st.success("Đã xử lý xong dữ liệu!")
-
             # st.session_state["Data"] = df_main
             # st.session_state["Don_hoan_thanh"] = Don_hoan_thannh
             # st.session_state["Don_dieu_chinh"] = Don_dieu_chinh
@@ -692,6 +690,8 @@ if process_btn:
                 file_name="df_main.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
+
+            st.success("Đã xử lý xong dữ liệu!")
 
 # ds_loai_don = [
 #     "ĐƠN HÀNG INCOME",
