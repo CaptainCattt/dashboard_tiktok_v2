@@ -423,279 +423,260 @@ process_btn = st.button("🔍 Xử lý dữ liệu", disabled=st.session_state.p
 
 if process_btn:
     if file_all and file_income:
-        st.session_state.processing = True  # ✅ Bắt đầu xử lý
         with st.spinner("⏳ Đang xử lý dữ liệu, vui lòng chờ..."):
-            try:
-                df_all = pd.read_excel(file_all)
-                df_income = pd.read_excel(file_income)
+            df_all = pd.read_excel(file_all)
+            df_income = pd.read_excel(file_income)
 
-                (
-                    df_all,
-                    df_income,
-                    df_merged,
-                    df_main,
-                    Don_hoan_thannh,
-                    Don_dieu_chinh,
-                    Don_hoan_tra,
-                    Don_boom,
-                ) = read_file_tiktok(df_all, df_income, ngay_bat_dau, ngay_ket_thuc)
+            (
+                df_all,
+                df_income,
+                df_merged,
+                df_main,
+                Don_hoan_thannh,
+                Don_dieu_chinh,
+                Don_hoan_tra,
+                Don_boom,
+            ) = read_file_tiktok(df_all, df_income, ngay_bat_dau, ngay_ket_thuc)
 
-                st.success("Đã xử lý xong dữ liệu!")
+            st.success("Đã xử lý xong dữ liệu!")
 
-                # st.session_state["Data"] = df_main
-                # st.session_state["Don_hoan_thanh"] = Don_hoan_thannh
-                # st.session_state["Don_dieu_chinh"] = Don_dieu_chinh
-                # st.session_state["Don_hoan_tra"] = Don_hoan_tra
-                # st.session_state["Don_boom"] = Don_boom
+            # st.session_state["Data"] = df_main
+            # st.session_state["Don_hoan_thanh"] = Don_hoan_thannh
+            # st.session_state["Don_dieu_chinh"] = Don_dieu_chinh
+            # st.session_state["Don_hoan_tra"] = Don_hoan_tra
+            # st.session_state["Don_boom"] = Don_boom
 
-                # Hiển thị bảng các đơn đã quyết toán trong khoảng thời gian
+            # Hiển thị bảng các đơn đã quyết toán trong khoảng thời gian
+            st.markdown(
+                "### 📄 Danh sách các đơn quyết toán trong khoảng thời gian đã chọn:"
+            )
+            st.dataframe(df_main)
+
+            st.markdown("### 📄 Danh sách các đơn hoàn thành:")
+            st.dataframe(Don_hoan_thannh)
+
+            st.markdown("### 📄 Danh sách các đơn điều chỉnh:")
+            st.dataframe(Don_dieu_chinh)
+
+            st.markdown("### 📄 Danh sách các đơn hoàn trả:")
+            st.dataframe(Don_hoan_tra)
+
+            st.markdown("### 📄 Danh sách các đơn hủy:")
+            st.dataframe(Don_boom)
+
+            # Hiển thị một vài thông tin cơ bản
+            st.subheader("📊 Tổng quan đơn hàng:")
+            st.metric(
+                "Số đơn hàng đã giao",
+                df_main["Order/adjustment ID"].drop_duplicates().nunique(),
+            )
+            Don_quyet_toan_unique = df_main.drop_duplicates(
+                subset="Order/adjustment ID"
+            )
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                total_revenue = Don_quyet_toan_unique["Total revenue"].sum()
                 st.markdown(
-                    "### 📄 Danh sách các đơn quyết toán trong khoảng thời gian đã chọn:"
-                )
-                st.dataframe(df_main)
-
-                st.markdown("### 📄 Danh sách các đơn hoàn thành:")
-                st.dataframe(Don_hoan_thannh)
-
-                st.markdown("### 📄 Danh sách các đơn điều chỉnh:")
-                st.dataframe(Don_dieu_chinh)
-
-                st.markdown("### 📄 Danh sách các đơn hoàn trả:")
-                st.dataframe(Don_hoan_tra)
-
-                st.markdown("### 📄 Danh sách các đơn hủy:")
-                st.dataframe(Don_boom)
-
-                # Hiển thị một vài thông tin cơ bản
-                st.subheader("📊 Tổng quan đơn hàng:")
-                st.metric(
-                    "Số đơn hàng đã giao",
-                    df_main["Order/adjustment ID"].drop_duplicates().nunique(),
-                )
-                # Loại bỏ dòng trùng theo mã đơn hàng
-                # Loại bỏ các dòng trùng theo Order/adjustment ID
-                Don_quyet_toan_unique = df_main.drop_duplicates(
-                    subset="Order/adjustment ID"
-                )
-                col1, col2, col3 = st.columns(3)
-
-                with col1:
-                    total_revenue = Don_quyet_toan_unique["Total revenue"].sum()
-                    st.markdown(
-                        f"""
-                        <div style="font-size:28px; font-weight:bold; color:#00BFFF;">
-                            📈 Tổng doanh thu
-                        </div>
-                        <div style="font-size:36px; font-weight:bold;">
-                            {total_revenue:,.0f} đ
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                with col2:
-                    Total_settlement_amount = Don_quyet_toan_unique[
-                        "Total settlement amount"
-                    ].sum()
-                    st.markdown(
-                        f"""
-                        <div style="font-size:28px; font-weight:bold; color:#FF6347;">
-                            💰 Tổng quyết toán
-                        </div>
-                        <div style="font-size:36px; font-weight:bold;">
-                            {Total_settlement_amount:,.0f} đ
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                with col3:
-                    Total_fees = Don_quyet_toan_unique["ABS_Total_Fees"].sum()
-                    st.markdown(
-                        f"""
-                        <div style="font-size:28px; font-weight:bold; color:#DC143C;">
-                            💸 Tổng chi phí
-                        </div>
-                        <div style="font-size:36px; font-weight:bold;">
-                            {Total_fees:,.0f} đ
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                # Chuyển datetime thành chỉ ngày (nếu cần)
-                Don_quyet_toan_unique["Ngày"] = Don_quyet_toan_unique[
-                    "Order settled time"
-                ].dt.date
-
-                # Tổng doanh thu theo ngày
-                doanhthu_theo_ngay = (
-                    Don_quyet_toan_unique.groupby("Ngày")["Total revenue"]
-                    .sum()
-                    .reset_index()
+                    f"""
+                    <div style="font-size:28px; font-weight:bold; color:#00BFFF;">
+                        📈 Tổng doanh thu
+                    </div>
+                    <div style="font-size:36px; font-weight:bold;">
+                        {total_revenue:,.0f} đ
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
 
-                # Vẽ biểu đồ miền
-                fig_doanhthu = px.area(
-                    doanhthu_theo_ngay,
-                    x="Ngày",
-                    y="Total revenue",
-                    title="📈 Doanh thu theo ngày",
-                    labels={"Ngày": "Ngày", "Total revenue": "Tổng doanh thu"},
+            with col2:
+                Total_settlement_amount = Don_quyet_toan_unique[
+                    "Total settlement amount"
+                ].sum()
+                st.markdown(
+                    f"""
+                    <div style="font-size:28px; font-weight:bold; color:#FF6347;">
+                        💰 Tổng quyết toán
+                    </div>
+                    <div style="font-size:36px; font-weight:bold;">
+                        {Total_settlement_amount:,.0f} đ
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
 
-                # Hiển thị
-                st.plotly_chart(fig_doanhthu, use_container_width=True)
-
-                fig_cost = px.area(
-                    Don_quyet_toan_unique,
-                    x="Order settled time",
-                    y="ABS_Total_Fees",  # ✅ Cột chi phí
-                    title="💸 Chi phí theo ngày",
-                    labels={"Order settled time": "Ngày", "ABS_Total_Fees": "Chi phí"},
+            with col3:
+                Total_fees = Don_quyet_toan_unique["ABS_Total_Fees"].sum()
+                st.markdown(
+                    f"""
+                    <div style="font-size:28px; font-weight:bold; color:#DC143C;">
+                        💸 Tổng chi phí
+                    </div>
+                    <div style="font-size:36px; font-weight:bold;">
+                        {Total_fees:,.0f} đ
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
-                fig_cost.update_traces(
-                    line_color="#FF6347", fillcolor="rgba(255,99,71,0.4)"
-                )
-                fig_cost.update_layout(xaxis_title="Ngày", yaxis_title="Chi phí")
-                st.plotly_chart(fig_cost, use_container_width=True)
 
-                # Số lượng sản phẩm theo từng SKU
-                fig_sanpham = px.histogram(
-                    Don_hoan_thannh,
+            # Chuyển datetime thành chỉ ngày (nếu cần)
+            Don_quyet_toan_unique["Ngày"] = Don_quyet_toan_unique[
+                "Order settled time"
+            ].dt.date
+
+            # Tổng doanh thu theo ngày
+            doanhthu_theo_ngay = (
+                Don_quyet_toan_unique.groupby("Ngày")["Total revenue"]
+                .sum()
+                .reset_index()
+            )
+
+            # Vẽ biểu đồ miền
+            fig_doanhthu = px.area(
+                doanhthu_theo_ngay,
+                x="Ngày",
+                y="Total revenue",
+                title="📈 Doanh thu theo ngày",
+                labels={"Ngày": "Ngày", "Total revenue": "Tổng doanh thu"},
+            )
+
+            # Hiển thị
+            st.plotly_chart(fig_doanhthu, use_container_width=True)
+
+            fig_cost = px.area(
+                Don_quyet_toan_unique,
+                x="Order settled time",
+                y="ABS_Total_Fees",  # ✅ Cột chi phí
+                title="💸 Chi phí theo ngày",
+                labels={"Order settled time": "Ngày", "ABS_Total_Fees": "Chi phí"},
+            )
+            fig_cost.update_traces(
+                line_color="#FF6347", fillcolor="rgba(255,99,71,0.4)"
+            )
+            fig_cost.update_layout(xaxis_title="Ngày", yaxis_title="Chi phí")
+            st.plotly_chart(fig_cost, use_container_width=True)
+
+            # Số lượng sản phẩm theo từng SKU
+            fig_sanpham = px.histogram(
+                Don_hoan_thannh,
+                x="SKU Category",
+                y="Quantity",
+                color="SKU Category",  # Mỗi SKU sẽ có màu khác nhau
+                title="Phân phối SKU theo số lượng sản phẩm",
+                labels={"Quantity": "Tổng số lượng"},
+            )
+
+            st.plotly_chart(fig_sanpham, use_container_width=True)
+
+            doanh_thu_theo_tinh = (
+                Don_quyet_toan_unique.groupby("Province")["Total revenue"]
+                .sum()
+                .reset_index()
+                .sort_values(by="Total revenue", ascending=False)
+            )
+
+            # Thêm cột phân loại top 10
+            doanh_thu_theo_tinh["Top10"] = [
+                "Top 10" if i < 10 else "Khác" for i in range(len(doanh_thu_theo_tinh))
+            ]
+
+            # Vẽ biểu đồ cột với màu theo top 10
+            fig_tinh = px.bar(
+                doanh_thu_theo_tinh,
+                x="Province",
+                y="Total revenue",
+                color="Top10",
+                color_discrete_map={"Top 10": "#EF553B", "Khác": "#636EFA"},
+                title="🏙️ Doanh thu theo tỉnh thành (Top 10 nổi bật)",
+                labels={"Province": "Tỉnh/Thành", "Total revenue": "Tổng doanh thu"},
+                text_auto=".2s",
+            )
+
+            st.plotly_chart(fig_tinh, use_container_width=True)
+
+            don_sanpham = (
+                Don_quyet_toan_unique.groupby("Buyer Username")
+                .agg(
+                    So_don=("Order/adjustment ID", "count"),
+                    Tong_san_pham=("Quantity", "sum"),
+                )
+                .reset_index()
+                .sort_values(by="So_don", ascending=False)
+            )
+
+            col4, col5 = st.columns(2)
+
+            # --- Biểu đồ 1: Top 20 theo số đơn ---
+            with col4:
+                top_20_don = don_sanpham.sort_values("So_don", ascending=False).head(20)
+                df_don = top_20_don[["Buyer Username", "So_don"]].copy()
+                df_don = df_don.rename(columns={"So_don": "Số lượng"})
+                df_don["Chỉ số"] = "Số đơn"
+
+                fig_don = px.bar(
+                    df_don,
+                    x="Buyer Username",
+                    y="Số lượng",
+                    color_discrete_sequence=["#1f77b4"],  # Màu xanh dương
+                    title="📦 Top 20 người mua theo số đơn hàng",
+                    labels={"Buyer Username": "Người mua"},
+                )
+                fig_don.update_layout(xaxis_tickangle=-45, showlegend=False)
+                st.plotly_chart(fig_don, use_container_width=True)
+
+            # --- Biểu đồ 2: Top 20 theo số lượng sản phẩm ---
+            with col5:
+                top_20_sanpham = don_sanpham.sort_values(
+                    "Tong_san_pham", ascending=False
+                ).head(20)
+                df_sp = top_20_sanpham[["Buyer Username", "Tong_san_pham"]].copy()
+                df_sp = df_sp.rename(columns={"Tong_san_pham": "Số lượng"})
+                df_sp["Chỉ số"] = "Tổng sản phẩm"
+
+                fig_sp = px.bar(
+                    df_sp,
+                    x="Buyer Username",
+                    y="Số lượng",
+                    color_discrete_sequence=["#FF7F0E"],  # Màu cam
+                    title="🎁 Top 20 người mua theo số lượng sản phẩm",
+                    labels={"Buyer Username": "Người mua"},
+                )
+                fig_sp.update_layout(xaxis_tickangle=-45, showlegend=False)
+                st.plotly_chart(fig_sp, use_container_width=True)
+
+            col6, col7 = st.columns(2)
+            with col6:
+                df_payment = (
+                    Don_quyet_toan_unique["Payment Method"].value_counts().reset_index()
+                )
+                df_payment.columns = ["Phương thức thanh toán", "Số lượng"]
+                fig_pie = px.pie(
+                    df_payment,
+                    names="Phương thức thanh toán",
+                    values="Số lượng",
+                    title="💳 Phân phối phương thức thanh toán",
+                    color_discrete_sequence=px.colors.sequential.RdBu,
+                    hole=0.4,  # Nếu muốn Doughnut chart
+                )
+
+                fig_pie.update_traces(textposition="inside", textinfo="percent+label")
+
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+            with col7:
+                fig_hoan_tra = px.bar(
+                    Don_hoan_tra,
                     x="SKU Category",
-                    y="Quantity",
-                    color="SKU Category",  # Mỗi SKU sẽ có màu khác nhau
-                    title="Phân phối SKU theo số lượng sản phẩm",
-                    labels={"Quantity": "Tổng số lượng"},
+                    color="SKU Category",
+                    title="📦 Phân phối đơn hoàn trả theo SKU",
+                    labels={"count": "Số đơn hoàn trả"},
                 )
 
-                st.plotly_chart(fig_sanpham, use_container_width=True)
+                # Đếm số đơn theo SKU
+                fig_hoan_tra.update_traces(marker_line_width=1)
+                fig_hoan_tra.update_layout(showlegend=False)
+                st.plotly_chart(fig_hoan_tra, use_container_width=True)
 
-                doanh_thu_theo_tinh = (
-                    Don_quyet_toan_unique.groupby("Province")["Total revenue"]
-                    .sum()
-                    .reset_index()
-                    .sort_values(by="Total revenue", ascending=False)
-                )
-
-                # Thêm cột phân loại top 10
-                doanh_thu_theo_tinh["Top10"] = [
-                    "Top 10" if i < 10 else "Khác"
-                    for i in range(len(doanh_thu_theo_tinh))
-                ]
-
-                # Vẽ biểu đồ cột với màu theo top 10
-                fig_tinh = px.bar(
-                    doanh_thu_theo_tinh,
-                    x="Province",
-                    y="Total revenue",
-                    color="Top10",
-                    color_discrete_map={"Top 10": "#EF553B", "Khác": "#636EFA"},
-                    title="🏙️ Doanh thu theo tỉnh thành (Top 10 nổi bật)",
-                    labels={
-                        "Province": "Tỉnh/Thành",
-                        "Total revenue": "Tổng doanh thu",
-                    },
-                    text_auto=".2s",
-                )
-
-                st.plotly_chart(fig_tinh, use_container_width=True)
-
-                don_sanpham = (
-                    Don_quyet_toan_unique.groupby("Buyer Username")
-                    .agg(
-                        So_don=("Order/adjustment ID", "count"),
-                        Tong_san_pham=("Quantity", "sum"),
-                    )
-                    .reset_index()
-                    .sort_values(by="So_don", ascending=False)
-                )
-
-                col4, col5 = st.columns(2)
-
-                # --- Biểu đồ 1: Top 20 theo số đơn ---
-                with col4:
-                    top_20_don = don_sanpham.sort_values(
-                        "So_don", ascending=False
-                    ).head(20)
-                    df_don = top_20_don[["Buyer Username", "So_don"]].copy()
-                    df_don = df_don.rename(columns={"So_don": "Số lượng"})
-                    df_don["Chỉ số"] = "Số đơn"
-
-                    fig_don = px.bar(
-                        df_don,
-                        x="Buyer Username",
-                        y="Số lượng",
-                        color_discrete_sequence=["#1f77b4"],  # Màu xanh dương
-                        title="📦 Top 20 người mua theo số đơn hàng",
-                        labels={"Buyer Username": "Người mua"},
-                    )
-                    fig_don.update_layout(xaxis_tickangle=-45, showlegend=False)
-                    st.plotly_chart(fig_don, use_container_width=True)
-
-                # --- Biểu đồ 2: Top 20 theo số lượng sản phẩm ---
-                with col5:
-                    top_20_sanpham = don_sanpham.sort_values(
-                        "Tong_san_pham", ascending=False
-                    ).head(20)
-                    df_sp = top_20_sanpham[["Buyer Username", "Tong_san_pham"]].copy()
-                    df_sp = df_sp.rename(columns={"Tong_san_pham": "Số lượng"})
-                    df_sp["Chỉ số"] = "Tổng sản phẩm"
-
-                    fig_sp = px.bar(
-                        df_sp,
-                        x="Buyer Username",
-                        y="Số lượng",
-                        color_discrete_sequence=["#FF7F0E"],  # Màu cam
-                        title="🎁 Top 20 người mua theo số lượng sản phẩm",
-                        labels={"Buyer Username": "Người mua"},
-                    )
-                    fig_sp.update_layout(xaxis_tickangle=-45, showlegend=False)
-                    st.plotly_chart(fig_sp, use_container_width=True)
-
-                col6, col7 = st.columns(2)
-                with col6:
-                    df_payment = (
-                        Don_quyet_toan_unique["Payment Method"]
-                        .value_counts()
-                        .reset_index()
-                    )
-                    df_payment.columns = ["Phương thức thanh toán", "Số lượng"]
-                    fig_pie = px.pie(
-                        df_payment,
-                        names="Phương thức thanh toán",
-                        values="Số lượng",
-                        title="💳 Phân phối phương thức thanh toán",
-                        color_discrete_sequence=px.colors.sequential.RdBu,
-                        hole=0.4,  # Nếu muốn Doughnut chart
-                    )
-
-                    fig_pie.update_traces(
-                        textposition="inside", textinfo="percent+label"
-                    )
-
-                    st.plotly_chart(fig_pie, use_container_width=True)
-
-                with col7:
-                    fig_hoan_tra = px.bar(
-                        Don_hoan_tra,
-                        x="SKU Category",
-                        color="SKU Category",
-                        title="📦 Phân phối đơn hoàn trả theo SKU",
-                        labels={"count": "Số đơn hoàn trả"},
-                    )
-
-                    # Đếm số đơn theo SKU
-                    fig_hoan_tra.update_traces(marker_line_width=1)
-                    fig_hoan_tra.update_layout(showlegend=False)
-                    st.plotly_chart(fig_hoan_tra, use_container_width=True)
-
-                st.session_state.df_processed = True
-            except Exception as e:
-                st.error(f"❌ Lỗi khi xử lý dữ liệu: {e}")
-            finally:
-                st.session_state.processing = False
             # ### DOWNLOAD
             # import io
             # import openpyxl
@@ -712,6 +693,7 @@ if process_btn:
             #     file_name="df_main.xlsx",
             #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             # )
+
 # ds_loai_don = [
 #     "ĐƠN HÀNG INCOME",
 #     "ĐƠN HOÀN THÀNH",
