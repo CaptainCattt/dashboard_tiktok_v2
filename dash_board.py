@@ -698,7 +698,7 @@ if st.session_state.processing:
             df_revenue_by_day,
             x="Ngày",
             y="Total revenue",
-            title="📈 Doanh thu theo ngày",
+            title="📈 Doanh thu theo ngày quyết toán",
             markers=True,
         )
         st.plotly_chart(fig3, use_container_width=True)
