@@ -440,11 +440,11 @@ if process_btn:
 
             st.success("Đã xử lý xong dữ liệu!")
 
-            st.session_state["Data"] = df_main
-            st.session_state["Don_hoan_thanh"] = Don_hoan_thannh
-            st.session_state["Don_dieu_chinh"] = Don_dieu_chinh
-            st.session_state["Don_hoan_tra"] = Don_hoan_tra
-            st.session_state["Don_boom"] = Don_boom
+            # st.session_state["Data"] = df_main
+            # st.session_state["Don_hoan_thanh"] = Don_hoan_thannh
+            # st.session_state["Don_dieu_chinh"] = Don_dieu_chinh
+            # st.session_state["Don_hoan_tra"] = Don_hoan_tra
+            # st.session_state["Don_boom"] = Don_boom
 
             # Hiển thị bảng các đơn đã quyết toán trong khoảng thời gian
             st.markdown(
@@ -679,22 +679,22 @@ if process_btn:
                 fig_hoan_tra.update_layout(showlegend=False)
                 st.plotly_chart(fig_hoan_tra, use_container_width=True)
 
-            ### DOWNLOAD
-            import io
-            import openpyxl
+            # ### DOWNLOAD
+            # import io
+            # import openpyxl
 
-            # Cho phép tải xuống
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                df_main.to_excel(writer, index=False, sheet_name="QuyetToan")
-            output.seek(0)
+            # # Cho phép tải xuống
+            # output = io.BytesIO()
+            # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            #     df_main.to_excel(writer, index=False, sheet_name="QuyetToan")
+            # output.seek(0)
 
-            st.download_button(
-                label="📥 Tải xuống danh sách quyết toán",
-                data=output,
-                file_name="df_main.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+            # st.download_button(
+            #     label="📥 Tải xuống danh sách quyết toán",
+            #     data=output,
+            #     file_name="df_main.xlsx",
+            #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            # )
 # ds_loai_don = [
 #     "ĐƠN HÀNG INCOME",
 #     "ĐƠN HOÀN THÀNH",
