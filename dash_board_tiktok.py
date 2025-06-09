@@ -601,6 +601,7 @@ if process_btn:
                     "Don_hoan_tra": Don_hoan_tra,
                     "Don_boom": Don_boom,
                     "fig_doanhthu": fig_doanhthu,
+                    "df_income": df_income,
                 }
             )
 
@@ -613,13 +614,14 @@ import pandas as pd
 if st.session_state.processing:
     st.markdown("## 📊 BIỂU ĐỒ TRỰC QUAN")
     df_main = st.session_state.get("df_main", None)
+    df_income = st.session_state.get("df_income", None)
     Don_hoan_thanh = st.session_state.get("Don_hoan_thanh")
     Don_dieu_chinh = st.session_state.get("Don_dieu_chinh")
     Don_hoan_tra = st.session_state.get("Don_hoan_tra")
     Don_boom = st.session_state.get("Don_boom")
 
     # Drop duplicates để tính tổng
-    Don_quyet_toan_unique = df_main.drop_duplicates(subset="Order/adjustment ID")
+    Don_quyet_toan_unique = df_main.drop_duplicates(subset="Order/adjustment ID").copy()
 
     # Biểu đồ 1: Số lượng đơn hàng theo loại
     df_counts = pd.DataFrame(
@@ -712,59 +714,107 @@ if st.session_state.processing:
         )
     st.markdown("<br><br>", unsafe_allow_html=True)
     # Biểu đồ 3: Doanh thu theo ngày
-    if "Order settled time" in Don_quyet_toan_unique.columns:
-        Don_quyet_toan_unique["Ngày"] = pd.to_datetime(
-            Don_quyet_toan_unique["Order settled time"]
-        ).dt.date
-        df_revenue_by_day = (
-            Don_quyet_toan_unique.groupby("Ngày")["Total revenue"].sum().reset_index()
+    if "Order settled time" in df_income.columns:
+        # Ép kiểu datetime cho Order settled time
+        df_income["Order settled time"] = pd.to_datetime(
+            df_income["Order settled time"], errors="coerce"
         )
+
+        # # Loại trùng đơn hàng theo ID (giữ lại 1 dòng mỗi đơn)
+        # if "Order/adjustment ID" in df_income.columns:
+        #     df_unique_order = df_income.drop_duplicates(subset=["Order/adjustment ID"])
+        # else:
+        #     df_unique_order = df_income.drop_duplicates()
+
+        # Ép kiểu số cho Total revenue
+        df_income["Total revenue"] = pd.to_numeric(
+            df_income["Total revenue"], errors="coerce"
+        )
+
+        # Tạo cột Ngày chỉ để nhóm theo ngày (lấy date từ Order settled time)
+        df_income["Ngày"] = df_income["Order settled time"].dt.date
+
+        # Nhóm tổng doanh thu theo ngày
+        df_revenue_by_day = (
+            df_income.groupby("Ngày")["Total revenue"].sum().reset_index()
+        )
+
+        # Vẽ biểu đồ (sử dụng cột Ngày dạng date làm trục x)
         fig3 = px.line(
             df_revenue_by_day,
             x="Ngày",
             y="Total revenue",
-            title="📈 Doanh thu theo ngày quyết toán",
+            title="📈 Doanh thu theo ngày quyết toán (không trùng đơn)",
             markers=True,
+            labels={"Total revenue": "Doanh thu (VNĐ)"},
         )
+
+        fig3.update_traces(hovertemplate="Ngày: %{x}<br>Doanh thu: %{y:,.0f} đ")
+        fig3.update_layout(yaxis_tickformat=",", yaxis_title="Doanh thu (VNĐ)")
+
         st.plotly_chart(fig3, use_container_width=True)
 
     # Biểu đồ 4: Số đơn theo ngày
     if "Order settled time" in Don_quyet_toan_unique.columns:
+        # Ép kiểu datetime
+        Don_quyet_toan_unique["Order settled time"] = pd.to_datetime(
+            Don_quyet_toan_unique["Order settled time"], errors="coerce"
+        )
+        # Tạo cột Ngày từ Order settled time (chỉ lấy ngày)
+        Don_quyet_toan_unique["Ngày"] = Don_quyet_toan_unique[
+            "Order settled time"
+        ].dt.date
+
+        # Đếm số đơn (Order/adjustment ID) không trùng theo ngày
         df_count_by_day = (
             Don_quyet_toan_unique.groupby("Ngày")["Order/adjustment ID"]
             .nunique()
             .reset_index()
         )
+
         fig4 = px.bar(
             df_count_by_day,
             x="Ngày",
             y="Order/adjustment ID",
             title="🗓️ Số đơn theo ngày",
+            labels={"Order/adjustment ID": "Số đơn"},
         )
         st.plotly_chart(fig4, use_container_width=True)
 
     # Biểu đồ 5: Doanh thu theo SKU Category nếu có
-    if "SKU Category" in Don_quyet_toan_unique.columns:
+    if "SKU Category" in df_main.columns:
         df_by_sku = (
-            Don_quyet_toan_unique.groupby("SKU Category")["Total revenue"]
+            df_main.groupby("SKU Category")["Total revenue"]
             .sum()
             .reset_index()
             .sort_values(by="Total revenue", ascending=False)
         )
+
         fig5 = px.bar(
             df_by_sku,
             x="SKU Category",
             y="Total revenue",
             title="📦 Doanh thu theo SKU Category",
             color="Total revenue",
+            labels={"Total revenue": "Doanh thu (VNĐ)"},
         )
+
+        fig5.update_traces(hovertemplate="SKU Category: %{x}<br>Doanh thu: %{y:,.0f} đ")
+
+        fig5.update_layout(
+            yaxis_tickformat=",",
+            yaxis_title="Doanh thu (VNĐ)",
+            yaxis_tickprefix="",
+            yaxis_ticksuffix=" đ",
+        )
+
         st.plotly_chart(fig5, use_container_width=True)
 
     # Biểu đồ phân phối số lượng sản phẩm theo SKU Category
-    if Don_hoan_thanh is not None and not Don_hoan_thanh.empty:
+    if df_main is not None and not df_main.empty:
 
         fig_sanpham = px.histogram(
-            Don_hoan_thanh,
+            df_main,
             x="SKU Category",
             y="Quantity",
             color="SKU Category",
@@ -784,17 +834,30 @@ if st.session_state.processing:
             .reset_index()
             .sort_values(by="Total revenue", ascending=False)
         )
+
         fig6 = px.bar(
             df_by_province,
             x="Province",
             y="Total revenue",
             title="🌍 Doanh thu theo tỉnh",
             color="Total revenue",
+            labels={"Total revenue": "Doanh thu (VNĐ)"},
         )
+
+        fig6.update_traces(hovertemplate="Tỉnh: %{x}<br>Doanh thu: %{y:,.0f} đ")
+
+        fig6.update_layout(
+            yaxis_tickformat=",",
+            yaxis_title="Doanh thu (VNĐ)",
+            yaxis_tickprefix="",
+            yaxis_ticksuffix=" đ",
+        )
+
         st.plotly_chart(fig6, use_container_width=True)
 
     # Tạo bảng tổng hợp số đơn và tổng sản phẩm theo Buyer Username
     df_ht = st.session_state["Don_hoan_thanh"].copy()
+
     don_sanpham = (
         df_ht.groupby("Buyer Username")
         .agg(
